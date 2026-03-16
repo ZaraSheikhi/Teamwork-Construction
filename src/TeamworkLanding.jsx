@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BrowserRouter,
+  HashRouter,
   Link,
   NavLink,
   Navigate,
@@ -13,13 +14,18 @@ import {
 
 const COMPANY_NAME = "Teamwork Construktion";
 const REGION = "Bremen & Umgebung";
-const LOGO_SRC = "/logo.png";
+const LOGO_SRC = `${import.meta.env.BASE_URL}logo.png`;
 
 const PHONE_DISPLAY = "+49 174 4257898";
 const PHONE_TEL = "tel:+491744257898";
 const WHATSAPP_DISPLAY = "+49 174 4257898";
 const WHATSAPP_LINK = "https://wa.me/491744257898";
 const EMAIL = "kontakt@teamwork-construktion.de";
+const QUERY_PARAMS = {
+  service: "leistung",
+  location: "ort",
+  source: "quelle",
+};
 
 const IMAGE_SOURCES = {
   homeHero:
@@ -424,6 +430,35 @@ const SERVICE_SEO_BY_ID = Object.fromEntries(
 const LOCATION_SEO_BY_SLUG = Object.fromEntries(
   LOCATION_SEO_PAGES.map((item) => [item.slug, item])
 );
+const SERVICE_BY_ID = Object.fromEntries(SERVICES.map((item) => [item.id, item]));
+
+const CONTACT_TRUST_POINTS = [
+  "Rückmeldung werktags in 24–48h",
+  "Unverbindliche Erstberatung",
+  "Arbeiten nach KfW-Vorgaben",
+];
+
+const CONTACT_FAQ = [
+  {
+    question: "Wie schnell bekomme ich eine Rückmeldung?",
+    answer: "In der Regel melden wir uns werktags innerhalb von 24–48 Stunden mit einem klaren nächsten Schritt.",
+  },
+  {
+    question: "Kann ich auch nur eine Teilmodernisierung anfragen?",
+    answer:
+      "Ja. Viele Projekte starten mit gezielten Maßnahmen, z. B. Bad-Teilmodernisierung oder einzelnen Ausbauabschnitten.",
+  },
+  {
+    question: "Unterstützen Sie bei KfW-relevanten Projekten?",
+    answer:
+      "Ja. Wir bieten KfW-Förderberatung und planen die Ausführung nach KfW-Vorgaben, ohne Förderbewilligungen zu versprechen.",
+  },
+  {
+    question: "Was soll ich für die Erstanfrage vorbereiten?",
+    answer:
+      "Ein kurzer Überblick reicht: gewünschte Leistung, Ort und Zeitrahmen. Fotos können Sie gern direkt per WhatsApp senden.",
+  },
+];
 
 const HEADER_LINKS = [
   { to: "/leistungen", label: "Leistungen" },
@@ -513,6 +548,121 @@ const whatsappBtnClass =
 const MENU_ANIM_MS = 280;
 const MENU_STAGGER_MS = 60;
 
+function buildContactPath({ serviceId = "", locationName = "", source = "" } = {}) {
+  const params = new URLSearchParams();
+
+  if (serviceId && SERVICE_BY_ID[serviceId]) {
+    params.set(QUERY_PARAMS.service, serviceId);
+  }
+
+  if (locationName?.trim()) {
+    params.set(QUERY_PARAMS.location, locationName.trim());
+  }
+
+  if (source?.trim()) {
+    params.set(QUERY_PARAMS.source, source.trim());
+  }
+
+  const query = params.toString();
+  return query ? `/kontakt?${query}` : "/kontakt";
+}
+
+function buildWhatsappLink({ serviceId = "", locationName = "", source = "website" } = {}) {
+  const service = serviceId ? SERVICE_BY_ID[serviceId] : null;
+  const lines = [
+    `Hallo ${COMPANY_NAME},`,
+    "ich interessiere mich für eine unverbindliche Erstberatung.",
+  ];
+
+  if (service) {
+    lines.push(`Leistung: ${service.title}`);
+  }
+
+  if (locationName?.trim()) {
+    lines.push(`Ort: ${locationName.trim()}`);
+  }
+
+  if (source?.trim()) {
+    lines.push(`Quelle: ${source.trim()}`);
+  }
+
+  lines.push("Bitte melden Sie sich für die nächsten Schritte.");
+  return `${WHATSAPP_LINK}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
+function getContactPrefill(search = "") {
+  const params = new URLSearchParams(search);
+  const serviceId = params.get(QUERY_PARAMS.service) || "";
+  const locationName = params.get(QUERY_PARAMS.location) || "";
+  const source = params.get(QUERY_PARAMS.source) || "";
+
+  return {
+    service: SERVICE_BY_ID[serviceId] ? serviceId : "",
+    location: locationName.trim(),
+    source: source.trim(),
+  };
+}
+
+function getPageContext(pathname) {
+  if (pathname === "/") return { source: "startseite" };
+  if (pathname === "/leistungen") return { source: "leistungen-uebersicht" };
+  if (pathname === "/projekte") return { source: "projekte" };
+  if (pathname === "/ablauf") return { source: "ablauf" };
+  if (pathname === "/kontakt") return { source: "kontakt" };
+  if (pathname === "/impressum" || pathname === "/datenschutz" || pathname === "/cookies") {
+    return { source: "rechtliches" };
+  }
+
+  if (pathname.startsWith("/leistungen/")) {
+    const slug = pathname.split("/")[2] || "";
+    const seoPage = SERVICE_SEO_BY_SLUG[slug];
+    return {
+      source: seoPage ? `leistungsseite-${seoPage.serviceId}` : "leistungsseite",
+      serviceId: seoPage?.serviceId || "",
+    };
+  }
+
+  if (pathname.startsWith("/standorte/")) {
+    const slug = pathname.split("/")[2] || "";
+    const locationPage = LOCATION_SEO_BY_SLUG[slug];
+    return {
+      source: locationPage ? `standort-${locationPage.slug}` : "standortseite",
+      locationName: locationPage?.locationName || "",
+    };
+  }
+
+  return { source: "website" };
+}
+
+function copyToClipboard(value) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(value);
+  }
+
+  if (typeof document === "undefined") {
+    return Promise.reject(new Error("Clipboard nicht verfügbar"));
+  }
+
+  return new Promise((resolve, reject) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (successful) {
+      resolve();
+    } else {
+      reject(new Error("Kopieren fehlgeschlagen"));
+    }
+  });
+}
+
 function useSeo(title, metaDescription) {
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -548,7 +698,7 @@ function BurgerIcon({ open, reduceMotion }) {
   );
 }
 
-function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMotion }) {
+function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMotion, whatsappHref }) {
   const headerClass = [
     "fixed inset-x-0 top-0 z-50 backdrop-blur",
     isScrolled
@@ -605,7 +755,7 @@ function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMoti
           <a href={PHONE_TEL} className={secondaryBtnClass}>
             Anrufen
           </a>
-          <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
+          <a href={whatsappHref} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
             WhatsApp
           </a>
         </div>
@@ -629,7 +779,7 @@ function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMoti
   );
 }
 
-function MobileMenu({ open, onNavigate, isScrolled, reduceMotion }) {
+function MobileMenu({ open, onNavigate, isScrolled, reduceMotion, whatsappHref }) {
   const [isMounted, setIsMounted] = useState(open);
   const [isVisible, setIsVisible] = useState(false);
   const closeTimerRef = useRef(null);
@@ -725,7 +875,7 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion }) {
             Anrufen
           </a>
           <a
-            href={WHATSAPP_LINK}
+            href={whatsappHref}
             target="_blank"
             rel="noreferrer"
             className={whatsappBtnClass}
@@ -739,7 +889,7 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion }) {
   );
 }
 
-function MobileActionBar({ hidden }) {
+function MobileActionBar({ hidden, whatsappHref }) {
   if (hidden) return null;
 
   return (
@@ -755,11 +905,26 @@ function MobileActionBar({ hidden }) {
           Jetzt anrufen
         </a>
         <a
-          href={WHATSAPP_LINK}
+          href={whatsappHref}
           target="_blank"
           rel="noreferrer"
           className={`anim-cta-glow ${whatsappBtnClass}`}
         >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function DesktopActionBar({ whatsappHref }) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-6 z-40 hidden justify-center lg:flex">
+      <div className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-red-200 bg-white/95 p-2 shadow-lg shadow-red-100/70 backdrop-blur">
+        <a href={PHONE_TEL} className={secondaryBtnClass}>
+          Anrufen
+        </a>
+        <a href={whatsappHref} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
           WhatsApp
         </a>
       </div>
@@ -906,8 +1071,43 @@ function StatBar() {
   );
 }
 
-function ContactForm() {
-  const initialData = useMemo(
+function CopyButton({ value, className = "" }) {
+  const [copied, setCopied] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+      }
+    },
+    []
+  );
+
+  const handleCopy = async () => {
+    try {
+      await copyToClipboard(value);
+      setCopied(true);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className={`inline-flex items-center rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${className}`}
+    >
+      {copied ? "Kopiert" : "Kopieren"}
+    </button>
+  );
+}
+
+function ContactForm({ prefill = { service: "", location: "", source: "" } }) {
+  const emptyData = useMemo(
     () => ({
       name: "",
       phone: "",
@@ -915,51 +1115,82 @@ function ContactForm() {
       service: "",
       location: "",
       message: "",
+      wantsKfw: false,
     }),
     []
   );
 
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState({ ...emptyData, service: prefill.service, location: prefill.location });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [step, setStep] = useState(1);
 
-  const validate = () => {
+  useEffect(() => {
+    setFormData({ ...emptyData, service: prefill.service, location: prefill.location });
+    setErrors({});
+    setSuccess(false);
+    setStep(1);
+  }, [emptyData, prefill.location, prefill.service]);
+
+  const validateStepOne = () => {
     const nextErrors = {};
-
     if (!formData.name.trim()) nextErrors.name = "Bitte Namen eingeben.";
     if (!formData.phone.trim()) nextErrors.phone = "Bitte Telefonnummer eingeben.";
+    if (!formData.service.trim()) nextErrors.service = "Bitte Leistung auswählen.";
+    return nextErrors;
+  };
+
+  const validateStepTwo = () => {
+    const nextErrors = {};
     if (!formData.email.trim()) {
       nextErrors.email = "Bitte E-Mail eingeben.";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       nextErrors.email = "Bitte eine gültige E-Mail-Adresse eingeben.";
     }
-    if (!formData.service.trim()) nextErrors.service = "Bitte Leistung auswählen.";
     if (!formData.location.trim()) nextErrors.location = "Bitte Ort/PLZ eingeben.";
     if (!formData.message.trim()) nextErrors.message = "Bitte Nachricht eingeben.";
-
     return nextErrors;
   };
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
     if (success) setSuccess(false);
   };
 
+  const handleNextStep = () => {
+    const nextErrors = validateStepOne();
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
+      return;
+    }
+    setErrors({});
+    setStep(2);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const nextErrors = validate();
+    if (step === 1) {
+      handleNextStep();
+      return;
+    }
+
+    const nextErrors = { ...validateStepOne(), ...validateStepTwo() };
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       setSuccess(false);
+      if (nextErrors.name || nextErrors.phone || nextErrors.service) {
+        setStep(1);
+      }
       return;
     }
 
     setSuccess(true);
     setErrors({});
-    setFormData(initialData);
+    setFormData(emptyData);
+    setStep(1);
   };
 
   const inputBaseClass =
@@ -969,107 +1200,148 @@ function ContactForm() {
     <form onSubmit={handleSubmit} noValidate className={`${cardClass} p-5 sm:p-6`}>
       <h3 className="text-lg font-semibold text-gray-900">Projektanfrage senden</h3>
       <p className="mt-1 text-sm text-gray-600">
-        Wir melden uns mit einem klaren nächsten Schritt. Fragen zur KfW-Förderberatung können Sie direkt in der Nachricht angeben.
+        Wir melden uns mit einem klaren nächsten Schritt. Fragen zur KfW-Förderberatung können Sie direkt angeben.
       </p>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-medium text-gray-700">
-          Name *
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={inputBaseClass}
-            autoComplete="name"
-            aria-invalid={Boolean(errors.name)}
-          />
-          {errors.name ? <span className="mt-1 block text-xs text-red-600">{errors.name}</span> : null}
-        </label>
-
-        <label className="text-sm font-medium text-gray-700">
-          Telefon *
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className={inputBaseClass}
-            autoComplete="tel"
-            aria-invalid={Boolean(errors.phone)}
-          />
-          {errors.phone ? <span className="mt-1 block text-xs text-red-600">{errors.phone}</span> : null}
-        </label>
-
-        <label className="text-sm font-medium text-gray-700">
-          E-Mail *
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={inputBaseClass}
-            autoComplete="email"
-            aria-invalid={Boolean(errors.email)}
-          />
-          {errors.email ? <span className="mt-1 block text-xs text-red-600">{errors.email}</span> : null}
-        </label>
-
-        <label className="text-sm font-medium text-gray-700">
-          Leistung *
-          <select
-            name="service"
-            value={formData.service}
-            onChange={handleChange}
-            className={inputBaseClass}
-            aria-invalid={Boolean(errors.service)}
-          >
-            <option value="">Bitte auswählen</option>
-            {SERVICES.map((service) => (
-              <option key={service.id} value={service.title}>
-                {service.title}
-              </option>
-            ))}
-          </select>
-          {errors.service ? <span className="mt-1 block text-xs text-red-600">{errors.service}</span> : null}
-        </label>
+      <div className="mt-4 rounded-xl border border-red-100 bg-red-50/60 p-3">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-red-700">
+          <span className={step === 1 ? "rounded-full bg-red-600 px-2 py-0.5 text-white" : "rounded-full bg-white px-2 py-0.5 text-red-700"}>1</span>
+          Kontaktdaten
+          <span className="text-gray-400">/</span>
+          <span className={step === 2 ? "rounded-full bg-red-600 px-2 py-0.5 text-white" : "rounded-full bg-white px-2 py-0.5 text-red-700"}>2</span>
+          Projektdetails
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-medium text-gray-700">
-          Ort / PLZ *
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            className={inputBaseClass}
-            aria-invalid={Boolean(errors.location)}
-          />
-          {errors.location ? <span className="mt-1 block text-xs text-red-600">{errors.location}</span> : null}
-        </label>
-      </div>
+      {prefill.source ? (
+        <p className="mt-3 text-xs text-gray-500">Anfragekontext: {prefill.source.replace(/-/g, " ")}</p>
+      ) : null}
 
-      <label className="mt-4 block text-sm font-medium text-gray-700">
-        Nachricht *
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          rows={4}
-          className={inputBaseClass}
-          aria-invalid={Boolean(errors.message)}
-        />
-        {errors.message ? <span className="mt-1 block text-xs text-red-600">{errors.message}</span> : null}
-      </label>
-      <p className="mt-2 text-xs text-gray-500">
+      {step === 1 ? (
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-medium text-gray-700">
+            Name *
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={inputBaseClass}
+              autoComplete="name"
+              aria-invalid={Boolean(errors.name)}
+            />
+            {errors.name ? <span className="mt-1 block text-xs text-red-600">{errors.name}</span> : null}
+          </label>
+
+          <label className="text-sm font-medium text-gray-700">
+            Telefon *
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className={inputBaseClass}
+              autoComplete="tel"
+              aria-invalid={Boolean(errors.phone)}
+            />
+            {errors.phone ? <span className="mt-1 block text-xs text-red-600">{errors.phone}</span> : null}
+          </label>
+
+          <label className="text-sm font-medium text-gray-700 sm:col-span-2">
+            Leistung *
+            <select
+              name="service"
+              value={formData.service}
+              onChange={handleChange}
+              className={inputBaseClass}
+              aria-invalid={Boolean(errors.service)}
+            >
+              <option value="">Bitte auswählen</option>
+              {SERVICES.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.title}
+                </option>
+              ))}
+            </select>
+            {errors.service ? <span className="mt-1 block text-xs text-red-600">{errors.service}</span> : null}
+          </label>
+        </div>
+      ) : (
+        <>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-gray-700">
+              E-Mail *
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={inputBaseClass}
+                autoComplete="email"
+                aria-invalid={Boolean(errors.email)}
+              />
+              {errors.email ? <span className="mt-1 block text-xs text-red-600">{errors.email}</span> : null}
+            </label>
+
+            <label className="text-sm font-medium text-gray-700">
+              Ort / PLZ *
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                className={inputBaseClass}
+                aria-invalid={Boolean(errors.location)}
+              />
+              {errors.location ? <span className="mt-1 block text-xs text-red-600">{errors.location}</span> : null}
+            </label>
+          </div>
+
+          <label className="mt-4 block text-sm font-medium text-gray-700">
+            Nachricht *
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              className={inputBaseClass}
+              aria-invalid={Boolean(errors.message)}
+            />
+            {errors.message ? <span className="mt-1 block text-xs text-red-600">{errors.message}</span> : null}
+          </label>
+
+          <label className="mt-4 flex items-start gap-3 rounded-xl border border-red-100 bg-red-50/50 px-3 py-2.5 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              name="wantsKfw"
+              checked={formData.wantsKfw}
+              onChange={handleChange}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            <span>KfW-Förderberatung gewünscht</span>
+          </label>
+        </>
+      )}
+
+      <p className="mt-3 text-xs text-gray-500">
         Hinweis: Für förderrelevante Projekte unterstützen wir mit KfW-Förderberatung und Arbeiten nach KfW-Vorgaben.
       </p>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
-        <button type="submit" className={primaryBtnClass}>
-          Anfrage senden
-        </button>
+        {step === 1 ? (
+          <button type="button" onClick={handleNextStep} className={primaryBtnClass}>
+            Weiter
+          </button>
+        ) : (
+          <>
+            <button type="button" onClick={() => setStep(1)} className={secondaryBtnClass}>
+              Zurück
+            </button>
+            <button type="submit" className={primaryBtnClass}>
+              Anfrage senden
+            </button>
+          </>
+        )}
         <a href={PHONE_TEL} className={secondaryBtnClass}>
           Lieber direkt anrufen
         </a>
@@ -1091,6 +1363,7 @@ function HomePage() {
   useSeo(STATIC_SEO.home.title, STATIC_SEO.home.metaDescription);
   const homeServicePreview = SERVICES;
   const homeProjectPreview = PROJECTS.slice(0, 3);
+  const homeWhatsappHref = buildWhatsappLink({ source: "startseite" });
 
   return (
     <>
@@ -1100,7 +1373,7 @@ function HomePage() {
         subtitle="Ob gezielte Modernisierung, umfangreiche Sanierung oder Außenbereich: Wir begleiten Ihr Projekt mit einem klaren Ablauf, transparenten Angeboten und hochwertiger Ausführung."
         image={IMAGE_SOURCES.homeHero}
         alt="Modernes, helles Wohnzimmer nach einer Renovierung"
-        primaryCta={<Link to="/kontakt" className={primaryBtnClass}>Projekt anfragen</Link>}
+        primaryCta={<Link to={buildContactPath({ source: "startseite-hero" })} className={primaryBtnClass}>Projekt anfragen</Link>}
         secondaryCta={<a href={PHONE_TEL} className={secondaryBtnClass}>{PHONE_DISPLAY}</a>}
         chips={["Unverbindliche Erstberatung", "Termintreu", "KfW-Förderberatung", "WhatsApp Direktkontakt", "Bremen & Umgebung"]}
       />
@@ -1118,6 +1391,12 @@ function HomePage() {
                   className="text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
                 >
                   Mehr zur KfW-Förderberatung
+                </Link>
+                <Link
+                  to={buildContactPath({ serviceId: "01", source: "kfw-box-startseite" })}
+                  className="text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
+                >
+                  KfW-Beratung anfragen
                 </Link>
                 <Link
                   to="/standorte/bremen"
@@ -1219,6 +1498,12 @@ function HomePage() {
                         >
                           Mehr auf der Leistungsseite
                         </Link>
+                        <Link
+                          to={buildContactPath({ serviceId: service.id, source: "startseite-leistungskarte" })}
+                          className="mt-2 inline-flex text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
+                        >
+                          Direkt anfragen
+                        </Link>
                       </div>
                     </article>
                   </Reveal>
@@ -1254,6 +1539,12 @@ function HomePage() {
                         >
                           Mehr auf der Leistungsseite
                         </Link>
+                        <Link
+                          to={buildContactPath({ serviceId: service.id, source: "startseite-leistungskarte" })}
+                          className="mt-2 inline-flex text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
+                        >
+                          Direkt anfragen
+                        </Link>
                       </div>
                     </article>
                   </Reveal>
@@ -1268,7 +1559,7 @@ function HomePage() {
                 Sie sind unsicher, welche Leistung passt? Über WhatsApp können Sie uns direkt Bilder schicken und wir geben eine erste Einschätzung.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
+                <a href={homeWhatsappHref} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
                   WhatsApp Anfrage starten
                 </a>
                 <Link to="/leistungen/renovierung-modernisierung-bremen" className={secondaryBtnClass}>
@@ -1330,7 +1621,7 @@ function HomePage() {
             <Link to="/ablauf" className={primaryBtnClass}>
               Detaillierten Ablauf ansehen
             </Link>
-            <Link to="/kontakt" className={secondaryBtnClass}>
+            <Link to={buildContactPath({ source: "startseite-ablauf" })} className={secondaryBtnClass}>
               Direkt Projekt besprechen
             </Link>
           </Reveal>
@@ -1442,10 +1733,10 @@ function HomePage() {
                 <a href={PHONE_TEL} className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-600">
                   {PHONE_DISPLAY}
                 </a>
-                <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
+                <a href={homeWhatsappHref} target="_blank" rel="noreferrer" className={whatsappBtnClass}>
                   WhatsApp schreiben
                 </a>
-                <Link to="/kontakt" className="inline-flex items-center justify-center rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-600">
+                <Link to={buildContactPath({ source: "startseite-final" })} className="inline-flex items-center justify-center rounded-xl border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-600">
                   Zum Kontaktformular
                 </Link>
               </div>
@@ -1468,7 +1759,7 @@ function LeistungenPage() {
         subtitle="Von der ersten Idee bis zur finalen Übergabe bündeln wir alle Arbeitsschritte in einem klaren Prozess."
         image={IMAGE_SOURCES.leistungenHero}
         alt="Innenraum in Renovierung mit klarer Linienführung"
-        primaryCta={<Link to="/kontakt" className={primaryBtnClass}>Leistung anfragen</Link>}
+        primaryCta={<Link to={buildContactPath({ source: "leistungen-hero" })} className={primaryBtnClass}>Leistung anfragen</Link>}
         secondaryCta={<Link to="/ablauf" className={secondaryBtnClass}>Ablauf ansehen</Link>}
       />
 
@@ -1503,6 +1794,12 @@ function LeistungenPage() {
                     >
                       Zur Leistungsseite
                     </Link>
+                    <Link
+                      to={buildContactPath({ serviceId: service.id, source: "leistungen-karte" })}
+                      className="mt-3 inline-flex text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
+                    >
+                      Direkt dafür anfragen
+                    </Link>
                   </div>
                 </article>
               );
@@ -1521,6 +1818,9 @@ function LeistungenPage() {
             <div className="mt-4 flex flex-wrap gap-3">
               <Link to="/leistungen/renovierung-modernisierung-bremen" className={primaryBtnClass}>
                 KfW-Leistungsseite ansehen
+              </Link>
+              <Link to={buildContactPath({ serviceId: "01", source: "kfw-box-leistungen" })} className={secondaryBtnClass}>
+                KfW-Beratung anfragen
               </Link>
               <Link to="/standorte/bremen" className={secondaryBtnClass}>
                 Standort Bremen
@@ -1544,7 +1844,7 @@ function ProjektePage() {
         subtitle="Jedes Projekt erzählt eine eigene Geschichte – immer mit Fokus auf Qualität, Tempo und Wohnkomfort."
         image={IMAGE_SOURCES.projekteHero}
         alt="Saniertes Wohnhaus mit moderner Fassade"
-        primaryCta={<Link to="/kontakt" className={primaryBtnClass}>Ähnliches Projekt planen</Link>}
+        primaryCta={<Link to={buildContactPath({ source: "projekte-hero" })} className={primaryBtnClass}>Ähnliches Projekt planen</Link>}
         secondaryCta={<Link to="/leistungen" className={secondaryBtnClass}>Leistungen entdecken</Link>}
       />
 
@@ -1596,7 +1896,7 @@ function AblaufPage() {
         subtitle="Unser Vier-Schritte-Prozess sorgt für Klarheit in jedem Abschnitt – von der Anfrage bis zur Übergabe."
         image={IMAGE_SOURCES.ablaufHero}
         alt="Teamabstimmung auf einer Baustelle"
-        primaryCta={<Link to="/kontakt" className={primaryBtnClass}>Jetzt starten</Link>}
+        primaryCta={<Link to={buildContactPath({ source: "ablauf-hero" })} className={primaryBtnClass}>Jetzt starten</Link>}
         secondaryCta={<Link to="/projekte" className={secondaryBtnClass}>Projekte ansehen</Link>}
       />
 
@@ -1642,6 +1942,17 @@ function AblaufPage() {
 
 function KontaktPage() {
   useSeo(STATIC_SEO.kontakt.title, STATIC_SEO.kontakt.metaDescription);
+  const currentLocation = useLocation();
+  const prefill = useMemo(() => getContactPrefill(currentLocation.search), [currentLocation.search]);
+  const kontaktWhatsappHref = useMemo(
+    () =>
+      buildWhatsappLink({
+        source: prefill.source || "kontakt",
+        serviceId: prefill.service,
+        locationName: prefill.location,
+      }),
+    [prefill.location, prefill.service, prefill.source]
+  );
 
   return (
     <>
@@ -1652,7 +1963,7 @@ function KontaktPage() {
         image={IMAGE_SOURCES.kontaktHero}
         alt="Heller Wohnraum als Kontaktmotiv"
         primaryCta={<a href={PHONE_TEL} className={primaryBtnClass}>Direkt anrufen</a>}
-        secondaryCta={<a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={whatsappBtnClass}>WhatsApp öffnen</a>}
+        secondaryCta={<a href={kontaktWhatsappHref} target="_blank" rel="noreferrer" className={whatsappBtnClass}>WhatsApp öffnen</a>}
       />
 
       <section className="py-14 sm:py-16">
@@ -1665,6 +1976,12 @@ function KontaktPage() {
                   Fragen zur Förderung? Wir beraten Sie zu passenden Maßnahmen und planen die Umsetzung mit Arbeiten nach KfW-Vorgaben.
                 </p>
                 <div className="mt-3 space-y-2">
+                  <Link
+                    to={buildContactPath({ serviceId: "01", source: "kfw-box-kontakt" })}
+                    className="block text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
+                  >
+                    KfW-Beratung anfragen
+                  </Link>
                   <Link
                     to="/leistungen/renovierung-modernisierung-bremen"
                     className="block text-sm font-semibold text-red-700 underline decoration-red-300 underline-offset-4 hover:text-red-800"
@@ -1682,7 +1999,10 @@ function KontaktPage() {
 
               <article className={`${cardClass} p-5 sm:p-6`}>
                 <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Telefon</p>
-                <p className="mt-2 text-xl font-semibold text-gray-900">{PHONE_DISPLAY}</p>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <p className="text-xl font-semibold text-gray-900">{PHONE_DISPLAY}</p>
+                  <CopyButton value={PHONE_DISPLAY} />
+                </div>
                 <p className="mt-2 text-sm text-gray-600">Für schnelle Rückfragen und erste Einschätzung.</p>
                 <a href={PHONE_TEL} className={`mt-4 w-full ${secondaryBtnClass}`}>
                   Anrufen
@@ -1693,7 +2013,7 @@ function KontaktPage() {
                 <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">WhatsApp</p>
                 <p className="mt-2 text-xl font-semibold text-gray-900">{WHATSAPP_DISPLAY}</p>
                 <p className="mt-2 text-sm text-gray-600">Fotos und kurze Projektinfos direkt senden.</p>
-                <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer" className={`mt-4 w-full ${whatsappBtnClass}`}>
+                <a href={kontaktWhatsappHref} target="_blank" rel="noreferrer" className={`mt-4 w-full ${whatsappBtnClass}`}>
                   WhatsApp starten
                 </a>
               </article>
@@ -1701,7 +2021,10 @@ function KontaktPage() {
               <article className={`${cardClass} overflow-hidden`}>
                 <img src={IMAGE_SOURCES.kontaktHero} alt="Kontaktmotiv Teamwork Construktion" loading="lazy" className="h-44 w-full object-cover" />
                 <div className="p-5">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">E-Mail</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">E-Mail</p>
+                    <CopyButton value={EMAIL} />
+                  </div>
                   <a
                     href={`mailto:${EMAIL}`}
                     className="mt-2 inline-flex text-sm font-semibold text-gray-700 underline decoration-gray-300 underline-offset-4 hover:text-red-600"
@@ -1712,8 +2035,31 @@ function KontaktPage() {
               </article>
             </div>
 
-            <div className="lg:col-span-8">
-              <ContactForm />
+            <div className="space-y-6 lg:col-span-8">
+              <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Ihr Vorteil</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  {CONTACT_TRUST_POINTS.map((point) => (
+                    <p key={point} className="rounded-xl border border-red-100 bg-red-50/50 px-3 py-2 text-sm font-medium text-gray-700">
+                      {point}
+                    </p>
+                  ))}
+                </div>
+              </article>
+
+              <ContactForm prefill={prefill} />
+
+              <article className={`${cardClass} p-5 sm:p-6`}>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Mini-FAQ</p>
+                <div className="mt-4 space-y-3">
+                  {CONTACT_FAQ.map((item) => (
+                    <details key={item.question} className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+                      <summary className="cursor-pointer text-sm font-semibold text-gray-900">{item.question}</summary>
+                      <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </article>
             </div>
           </div>
         </div>
@@ -1735,7 +2081,7 @@ function LegalPage({ pageKey }) {
         subtitle={page.subtitle}
         image={IMAGE_SOURCES.legalHero}
         alt="Dokumente und Vertragsunterlagen"
-        primaryCta={<Link to="/kontakt" className={primaryBtnClass}>Frage stellen</Link>}
+        primaryCta={<Link to={buildContactPath({ source: `rechtliches-${pageKey}` })} className={primaryBtnClass}>Frage stellen</Link>}
         secondaryCta={<Link to="/" className={secondaryBtnClass}>Zur Startseite</Link>}
       />
 
@@ -1852,7 +2198,10 @@ function ServiceSeoPage() {
   const relatedLinks = [
     { to: "/leistungen", label: "Alle Leistungen" },
     { to: "/standorte/bremen", label: "Leistungen in Bremen" },
-    { to: "/kontakt", label: "Direkt anfragen" },
+    {
+      to: buildContactPath({ serviceId: service.id, source: `seo-links-${seoPage.slug}` }),
+      label: "Direkt anfragen",
+    },
   ];
 
   if (seoPage.slug !== "renovierung-modernisierung-bremen") {
@@ -1872,7 +2221,7 @@ function ServiceSeoPage() {
       overviewTitle={`${service.title} im Detail`}
       overviewText={`${service.description} ${service.text}`}
       bulletPoints={[...service.points, "KfW-Förderberatung bei förderrelevanten Vorhaben"]}
-      primaryCta={<Link to="/kontakt" className={`w-full ${primaryBtnClass}`}>Angebot anfragen</Link>}
+      primaryCta={<Link to={buildContactPath({ serviceId: service.id, source: `seo-${seoPage.slug}` })} className={`w-full ${primaryBtnClass}`}>Angebot anfragen</Link>}
       secondaryCta={<a href={PHONE_TEL} className={`w-full ${secondaryBtnClass}`}>Direkt anrufen</a>}
       relatedLinks={relatedLinks}
     />
@@ -1903,7 +2252,7 @@ function LocationSeoPage() {
       overviewTitle={`${locationPage.locationName}: Leistungen vor Ort`}
       overviewText={`Als Bauunternehmen für ${locationPage.locationName} und Umgebung setzen wir Wohn- und Außenprojekte mit klarer Planung und verlässlicher Ausführung um. Unsere Teams begleiten Sie von der Anfrage bis zur Übergabe, inklusive KfW-Förderberatung.`}
       bulletPoints={locationBullets}
-      primaryCta={<Link to="/kontakt" className={`w-full ${primaryBtnClass}`}>Projekt in {locationPage.locationName} anfragen</Link>}
+      primaryCta={<Link to={buildContactPath({ locationName: locationPage.locationName, source: `standort-${locationPage.slug}` })} className={`w-full ${primaryBtnClass}`}>Projekt in {locationPage.locationName} anfragen</Link>}
       secondaryCta={<a href={PHONE_TEL} className={`w-full ${secondaryBtnClass}`}>Telefonische Erstberatung</a>}
       relatedLinks={[
         { to: "/leistungen/renovierung-modernisierung-bremen", label: "Renovierung in Bremen" },
@@ -1920,6 +2269,16 @@ function SiteLayout() {
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const location = useLocation();
+  const pageContext = useMemo(() => getPageContext(location.pathname), [location.pathname]);
+  const whatsappHref = useMemo(
+    () =>
+      buildWhatsappLink({
+        source: pageContext.source,
+        serviceId: pageContext.serviceId,
+        locationName: pageContext.locationName,
+      }),
+    [pageContext.locationName, pageContext.serviceId, pageContext.source]
+  );
   const lastScrollYRef = useRef(0);
   const tickingRef = useRef(false);
 
@@ -2011,14 +2370,17 @@ function SiteLayout() {
         isScrolled={isScrolled}
         isHeaderHidden={isHeaderHidden}
         reduceMotion={reduceMotion}
+        whatsappHref={whatsappHref}
       />
       <MobileMenu
         open={menuOpen}
         onNavigate={() => setMenuOpen(false)}
         isScrolled={isScrolled}
         reduceMotion={reduceMotion}
+        whatsappHref={whatsappHref}
       />
-      <MobileActionBar hidden={menuOpen} />
+      <DesktopActionBar whatsappHref={whatsappHref} />
+      <MobileActionBar hidden={menuOpen} whatsappHref={whatsappHref} />
 
       <main className="pb-24 sm:pb-0">
         <Outlet />
@@ -2044,8 +2406,11 @@ function SiteLayout() {
 }
 
 export default function TeamworkLanding() {
+  const useHashRouter = import.meta.env.PROD;
+  const RouterComponent = useHashRouter ? HashRouter : BrowserRouter;
+
   return (
-    <BrowserRouter>
+    <RouterComponent>
       <Routes>
         <Route element={<SiteLayout />}>
           <Route path="/" element={<HomePage />} />
@@ -2061,6 +2426,6 @@ export default function TeamworkLanding() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </RouterComponent>
   );
 }
