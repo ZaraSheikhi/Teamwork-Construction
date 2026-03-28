@@ -540,13 +540,16 @@ const containerClass = "max-w-6xl mx-auto px-4 sm:px-6 lg:px-8";
 const cardClass =
   "rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg";
 const primaryBtnClass =
-  "inline-flex items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2";
+  "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 sm:min-h-0 sm:w-auto";
 const secondaryBtnClass =
-  "inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2";
+  "inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 sm:min-h-0 sm:w-auto";
 const whatsappBtnClass =
-  "inline-flex items-center justify-center rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2";
+  "inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2 sm:min-h-0 sm:w-auto";
 const MENU_ANIM_MS = 280;
 const MENU_STAGGER_MS = 60;
+const mobileCarouselTrackClass =
+  "-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 pr-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+const mobileCarouselItemClass = "min-w-[88%] snap-center";
 
 function buildContactPath({ serviceId = "", locationName = "", source = "" } = {}) {
   const params = new URLSearchParams();
@@ -712,15 +715,15 @@ function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMoti
     .filter(Boolean)
     .join(" ");
 
-  const headerHeightClass = isScrolled ? "h-16 sm:h-20" : "h-20 sm:h-24";
-  const logoSizeClass = isScrolled ? "h-11 sm:h-16" : "h-14 sm:h-20";
+  const headerHeightClass = isScrolled ? "h-[4.25rem] sm:h-20" : "h-[4.75rem] sm:h-24";
+  const logoSizeClass = isScrolled ? "h-10 sm:h-16" : "h-12 sm:h-20";
 
   return (
     <header className={headerClass}>
-      <div className={`${containerClass} flex ${headerHeightClass} items-center justify-between gap-3 sm:gap-4`}>
+      <div className={`${containerClass} flex ${headerHeightClass} items-center justify-between gap-2 sm:gap-4`}>
         <Link
           to="/"
-          className={`inline-flex items-center gap-3 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${
+          className={`inline-flex max-w-[calc(100%-4.5rem)] items-center gap-2 rounded-lg px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${
             reduceMotion ? "" : "transition-all duration-300"
           }`}
         >
@@ -766,7 +769,7 @@ function Header({ menuOpen, onMenuToggle, isScrolled, isHeaderHidden, reduceMoti
           aria-expanded={menuOpen}
           aria-controls="mobile-menu"
           onClick={onMenuToggle}
-          className={`inline-flex items-center justify-center rounded-xl border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 lg:hidden ${
+          className={`inline-flex items-center justify-center rounded-xl border p-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 lg:hidden ${
             menuOpen
               ? "border-red-300 bg-red-50 text-red-700"
               : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
@@ -783,7 +786,7 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion, whatsappHref }
   const [isMounted, setIsMounted] = useState(open);
   const [isVisible, setIsVisible] = useState(false);
   const closeTimerRef = useRef(null);
-  const topOffsetClass = isScrolled ? "top-16 sm:top-20" : "top-20 sm:top-24";
+  const topOffsetClass = isScrolled ? "top-[4.25rem] sm:top-20" : "top-[4.75rem] sm:top-24";
   const panelDurationMs = reduceMotion ? 1 : MENU_ANIM_MS;
   const itemDurationMs = reduceMotion ? 1 : 220;
   const ctaDelayMs = 80 + HEADER_LINKS.length * MENU_STAGGER_MS + 30;
@@ -831,14 +834,29 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion, whatsappHref }
   return (
     <div
       id="mobile-menu"
-      className={`fixed inset-x-0 z-40 border-b border-red-100 bg-white/98 shadow-lg shadow-red-100/50 transition-all lg:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 overflow-hidden rounded-t-3xl border-t border-red-100 bg-white/98 shadow-2xl shadow-red-100/60 transition-all lg:hidden ${
         isVisible ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0 pointer-events-none"
       } ${topOffsetClass}`}
       style={{ transitionDuration: `${panelDurationMs}ms`, transitionTimingFunction: easing }}
       role="dialog"
       aria-label="Mobiles Menü"
     >
-      <div className={`${containerClass} space-y-4 py-5`}>
+      <div
+        className={`${containerClass} max-h-[calc(100dvh-5.5rem)] space-y-5 overflow-y-auto py-5`}
+        style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">Navigation</p>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center rounded-full bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700"
+            onClick={onNavigate}
+          >
+            WhatsApp direkt
+          </a>
+        </div>
         <nav className="grid gap-2" aria-label="Mobile Navigation">
           {HEADER_LINKS.map((item, index) => (
             <NavLink
@@ -846,8 +864,10 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion, whatsappHref }
               to={item.to}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `rounded-xl px-3 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${
-                  isActive ? "bg-red-50 text-red-700" : "text-gray-700 hover:bg-gray-50"
+                `rounded-2xl border px-4 py-3.5 text-base font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 ${
+                  isActive
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-gray-200 text-gray-700 hover:bg-gray-50"
                 } ${isVisible ? "translate-x-0 opacity-100" : "-translate-x-3 opacity-0"}`
               }
               style={{
@@ -862,7 +882,7 @@ function MobileMenu({ open, onNavigate, isScrolled, reduceMotion, whatsappHref }
         </nav>
 
         <div
-          className={`grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 transition-all ${
+          className={`grid gap-2 border-t border-gray-100 pt-4 min-[420px]:grid-cols-2 transition-all ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
           }`}
           style={{
@@ -893,16 +913,16 @@ function MobileActionBar({ hidden, whatsappHref }) {
   if (hidden) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] border-t border-red-200 bg-white/95 backdrop-blur sm:hidden">
+    <div className="fixed inset-x-3 bottom-3 z-[60] sm:hidden">
       <div
-        className={`${containerClass} grid grid-cols-2 gap-2 py-2`}
+        className="grid grid-cols-2 gap-2 rounded-2xl border border-red-200 bg-white/95 p-2 shadow-2xl shadow-red-100/70 backdrop-blur"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         <a
           href={PHONE_TEL}
-          className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-bold text-red-700 shadow-sm transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+          className="inline-flex min-h-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-bold text-red-700 shadow-sm transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
         >
-          Jetzt anrufen
+          Anrufen
         </a>
         <a
           href={whatsappHref}
@@ -934,13 +954,15 @@ function DesktopActionBar({ whatsappHref }) {
 
 function SectionHeading({ label, title, subtitle }) {
   return (
-    <div className="mb-8 sm:mb-10">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-red-600">{label}</p>
-      <h1 className="text-3xl font-black uppercase leading-[1.05] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
+    <div className="mb-7 sm:mb-10">
+      <p className="mb-3 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-red-600 sm:text-xs sm:tracking-widest">
+        {label}
+      </p>
+      <h1 className="text-[1.9rem] font-black uppercase leading-[1.02] tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
         {title}
       </h1>
-      <div className="mt-4 h-1.5 w-16 rounded-full bg-red-600" aria-hidden="true" />
-      {subtitle ? <p className="mt-4 max-w-3xl text-base text-gray-600 sm:text-lg">{subtitle}</p> : null}
+      <div className="mt-3 h-1.5 w-14 rounded-full bg-red-600 sm:mt-4 sm:w-16" aria-hidden="true" />
+      {subtitle ? <p className="mt-3 max-w-3xl text-[0.97rem] leading-relaxed text-gray-600 sm:mt-4 sm:text-lg">{subtitle}</p> : null}
     </div>
   );
 }
@@ -986,7 +1008,7 @@ function Reveal({ children, className = "", delay = 0 }) {
 
 function HeroSplit({ eyebrow, title, subtitle, image, alt, primaryCta, secondaryCta, chips }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-red-50/70 via-white to-white pb-14 pt-28 sm:pb-16 sm:pt-36">
+    <section className="relative overflow-hidden bg-gradient-to-b from-red-50/70 via-white to-white pb-12 pt-24 sm:pb-16 sm:pt-36">
       <div
         className="anim-float-red pointer-events-none absolute -top-24 right-[10%] h-72 w-72 rounded-full bg-red-200/60 blur-3xl"
         aria-hidden="true"
@@ -1002,26 +1024,28 @@ function HeroSplit({ eyebrow, title, subtitle, image, alt, primaryCta, secondary
         aria-hidden="true"
       />
 
-      <div className={`${containerClass} relative grid gap-8 lg:grid-cols-12 lg:items-end`}>
+      <div className={`${containerClass} relative grid gap-6 lg:grid-cols-12 lg:items-end`}>
         <Reveal className="anim-hero-enter lg:col-span-7">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{eyebrow}</p>
-          <div className="mt-4 h-1.5 w-14 rounded-full bg-red-600" aria-hidden="true" />
-          <h1 className="mt-5 text-[2.35rem] font-black leading-[1.06] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-gray-500 sm:text-xs sm:tracking-widest">
+            {eyebrow}
+          </p>
+          <div className="mt-3 h-1.5 w-12 rounded-full bg-red-600 sm:mt-4 sm:w-14" aria-hidden="true" />
+          <h1 className="mt-4 text-[2rem] font-black leading-[1.02] tracking-tight text-gray-900 min-[390px]:text-[2.2rem] sm:mt-5 sm:text-5xl lg:text-6xl">
             {title}
           </h1>
-          <p className="mt-5 max-w-2xl text-base text-gray-600 sm:text-lg">{subtitle}</p>
+          <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-gray-600 sm:mt-5 sm:text-lg">{subtitle}</p>
 
-          <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap [&>*]:w-full sm:[&>*]:w-auto">
+          <div className="mt-6 grid gap-2.5 sm:mt-7 sm:flex sm:flex-wrap [&>*]:w-full sm:[&>*]:w-auto">
             {primaryCta}
             {secondaryCta}
           </div>
 
           {chips ? (
-            <div className="mt-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="mt-5 flex flex-wrap gap-2 sm:overflow-x-auto sm:pb-1 sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden">
               {chips.map((chip) => (
                 <span
                   key={chip}
-                  className="whitespace-nowrap rounded-full border border-red-100 bg-white px-3 py-1 text-xs font-medium text-gray-600"
+                  className="rounded-full border border-red-100 bg-white px-3 py-1.5 text-[0.72rem] font-medium text-gray-600 sm:whitespace-nowrap sm:text-xs"
                 >
                   {chip}
                 </span>
@@ -1036,7 +1060,7 @@ function HeroSplit({ eyebrow, title, subtitle, image, alt, primaryCta, secondary
               src={image}
               alt={alt}
               loading="lazy"
-              className="h-[320px] w-full object-cover transition duration-700 hover:scale-[1.03] sm:h-[420px]"
+              className="h-[250px] w-full object-cover transition duration-700 hover:scale-[1.03] min-[420px]:h-[300px] sm:h-[420px]"
             />
           </div>
         </Reveal>
@@ -1047,21 +1071,21 @@ function HeroSplit({ eyebrow, title, subtitle, image, alt, primaryCta, secondary
 
 function StatBar() {
   return (
-    <div className={`${cardClass} border-red-200 p-5 sm:p-6`}>
-      <div className="grid gap-4 border-b border-gray-100 pb-5 sm:grid-cols-3">
+    <div className={`${cardClass} border-red-200 p-4 sm:p-6`}>
+      <div className="grid grid-cols-3 gap-2 border-b border-gray-100 pb-4 sm:gap-4 sm:pb-5">
         {KPIS.map((item) => (
-          <div key={item.label} className="rounded-xl border border-red-100 bg-red-50/60 p-4">
-            <p className="text-3xl font-black tracking-tight text-red-700 sm:text-4xl">{item.value}</p>
-            <p className="mt-1 text-sm font-medium text-gray-600">{item.label}</p>
+          <div key={item.label} className="rounded-xl border border-red-100 bg-red-50/60 p-3 sm:p-4">
+            <p className="text-xl font-black tracking-tight text-red-700 min-[420px]:text-2xl sm:text-4xl">{item.value}</p>
+            <p className="mt-1 text-[11px] leading-tight font-medium text-gray-600 sm:text-sm">{item.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-1.5 sm:mt-5 sm:gap-2">
         {BADGES.map((badge) => (
           <span
             key={badge}
-            className="inline-flex items-center rounded-full border border-red-100 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
+            className="inline-flex items-center rounded-full border border-red-100 bg-white px-2.5 py-1.5 text-[11px] font-medium text-gray-700 sm:px-3 sm:text-xs"
           >
             {badge}
           </span>
@@ -1194,22 +1218,29 @@ function ContactForm({ prefill = { service: "", location: "", source: "" } }) {
   };
 
   const inputBaseClass =
-    "mt-1 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500";
+    "mt-1 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-3 text-base text-gray-900 shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 sm:py-2.5 sm:text-sm";
 
   return (
-    <form onSubmit={handleSubmit} noValidate className={`${cardClass} p-5 sm:p-6`}>
+    <form onSubmit={handleSubmit} noValidate className={`${cardClass} p-4 sm:p-6`}>
       <h3 className="text-lg font-semibold text-gray-900">Projektanfrage senden</h3>
       <p className="mt-1 text-sm text-gray-600">
         Wir melden uns mit einem klaren nächsten Schritt. Fragen zur KfW-Förderberatung können Sie direkt angeben.
       </p>
 
       <div className="mt-4 rounded-xl border border-red-100 bg-red-50/60 p-3">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-red-700">
-          <span className={step === 1 ? "rounded-full bg-red-600 px-2 py-0.5 text-white" : "rounded-full bg-white px-2 py-0.5 text-red-700"}>1</span>
-          Kontaktdaten
-          <span className="text-gray-400">/</span>
-          <span className={step === 2 ? "rounded-full bg-red-600 px-2 py-0.5 text-white" : "rounded-full bg-white px-2 py-0.5 text-red-700"}>2</span>
-          Projektdetails
+        <div className="grid grid-cols-2 gap-2">
+          <div className={`rounded-xl border px-3 py-2 ${step === 1 ? "border-red-200 bg-white text-red-700" : "border-red-100 bg-transparent text-gray-500"}`}>
+            <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${step === 1 ? "bg-red-600 text-white" : "bg-white text-red-700"}`}>
+              1
+            </span>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em]">Kontaktdaten</p>
+          </div>
+          <div className={`rounded-xl border px-3 py-2 ${step === 2 ? "border-red-200 bg-white text-red-700" : "border-red-100 bg-transparent text-gray-500"}`}>
+            <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${step === 2 ? "bg-red-600 text-white" : "bg-white text-red-700"}`}>
+              2
+            </span>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em]">Projektdetails</p>
+          </div>
         </div>
       </div>
 
@@ -1327,7 +1358,7 @@ function ContactForm({ prefill = { service: "", location: "", source: "" } }) {
         Hinweis: Für förderrelevante Projekte unterstützen wir mit KfW-Förderberatung und Arbeiten nach KfW-Vorgaben.
       </p>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         {step === 1 ? (
           <button type="button" onClick={handleNextStep} className={primaryBtnClass}>
             Weiter
@@ -1474,21 +1505,21 @@ function HomePage() {
           </Reveal>
 
           <div className="sm:hidden">
-            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className={mobileCarouselTrackClass}>
               {homeServicePreview.map((service, index) => {
                 const serviceSeoPage = SERVICE_SEO_BY_ID[service.id];
                 const serviceDetailPath = serviceSeoPage ? `/leistungen/${serviceSeoPage.slug}` : "/leistungen";
 
                 return (
-                  <Reveal key={service.id} delay={index * 80} className="min-w-[85%] snap-start">
+                  <Reveal key={service.id} delay={index * 80} className={mobileCarouselItemClass}>
                     <article className={`${cardClass} overflow-hidden`}>
                       <img
                         src={service.image}
                         alt={service.title}
                         loading="lazy"
-                        className="h-44 w-full object-cover transition duration-700 hover:scale-[1.03]"
+                        className="h-40 w-full object-cover transition duration-700 hover:scale-[1.03]"
                       />
-                      <div className="p-5">
+                      <div className="p-4">
                         <p className="font-mono text-3xl font-bold leading-none text-red-600">{service.id}</p>
                         <h3 className="mt-3 text-lg font-semibold text-gray-900">{service.title}</h3>
                         <p className="mt-2 text-sm leading-relaxed text-gray-600">{service.description}</p>
@@ -1588,9 +1619,9 @@ function HomePage() {
           </Reveal>
 
           <div className="md:hidden">
-            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className={mobileCarouselTrackClass}>
               {STEPS.map((step, index) => (
-                <Reveal key={step.id} delay={index * 80} className="min-w-[82%] snap-start">
+                <Reveal key={step.id} delay={index * 80} className={mobileCarouselItemClass}>
                   <article className={`${cardClass} border-red-100 p-5`}>
                     <p className="font-mono text-4xl font-black leading-none text-red-600">{step.id}</p>
                     <h3 className="mt-3 text-lg font-semibold text-gray-900">{step.title}</h3>
@@ -1645,17 +1676,17 @@ function HomePage() {
           </Reveal>
 
           <div className="md:hidden">
-            <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className={mobileCarouselTrackClass}>
               {homeProjectPreview.map((project, index) => (
-                <Reveal key={project.id} delay={index * 80} className="min-w-[86%] snap-start">
+                <Reveal key={project.id} delay={index * 80} className={mobileCarouselItemClass}>
                   <article className={`${cardClass} overflow-hidden`}>
                     <img
                       src={project.image}
                       alt={project.title}
                       loading="lazy"
-                      className="h-52 w-full object-cover transition duration-700 hover:scale-[1.03]"
+                      className="h-44 w-full object-cover transition duration-700 hover:scale-[1.03]"
                     />
-                    <div className="space-y-3 p-5">
+                    <div className="space-y-3 p-4">
                       <div className="flex flex-wrap gap-2">
                         <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
                           {project.title}
@@ -1715,13 +1746,13 @@ function HomePage() {
       <section className="pb-14 sm:pb-16">
         <div className={containerClass}>
           <Reveal>
-            <div className="relative overflow-hidden rounded-2xl border border-red-300 bg-gradient-to-r from-red-600 to-red-700 p-6 text-white shadow-lg sm:p-8">
+            <div className="relative overflow-hidden rounded-2xl border border-red-300 bg-gradient-to-r from-red-600 to-red-700 p-5 text-white shadow-lg sm:p-8">
               <div
                 className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl motion-safe:animate-pulse"
                 aria-hidden="true"
               />
               <p className="text-xs font-semibold uppercase tracking-widest text-red-100">Kontakt</p>
-              <h2 className="mt-3 max-w-3xl text-3xl font-black uppercase leading-tight tracking-tight sm:text-4xl">
+              <h2 className="mt-3 max-w-3xl text-[1.9rem] font-black uppercase leading-tight tracking-tight sm:text-4xl">
                 STARTSEITE GESEHEN.
                 <br />
                 NÄCHSTER SCHRITT: ANFRAGE.
@@ -1729,7 +1760,7 @@ function HomePage() {
               <p className="mt-4 max-w-2xl text-sm text-red-50 sm:text-base">
                 Telefon, WhatsApp oder Formular: Wir melden uns werktags innerhalb von 24-48 Stunden und besprechen mit Ihnen den sinnvollsten Startpunkt.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <a href={PHONE_TEL} className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-red-600">
                   {PHONE_DISPLAY}
                 </a>
@@ -1997,10 +2028,10 @@ function KontaktPage() {
                 </div>
               </article>
 
-              <article className={`${cardClass} p-5 sm:p-6`}>
+              <article className={`${cardClass} p-4 sm:p-6`}>
                 <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Telefon</p>
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-xl font-semibold text-gray-900">{PHONE_DISPLAY}</p>
+                <div className="mt-2 flex flex-col items-start gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+                  <p className="text-lg font-semibold text-gray-900 min-[420px]:text-xl">{PHONE_DISPLAY}</p>
                   <CopyButton value={PHONE_DISPLAY} />
                 </div>
                 <p className="mt-2 text-sm text-gray-600">Für schnelle Rückfragen und erste Einschätzung.</p>
@@ -2020,8 +2051,8 @@ function KontaktPage() {
 
               <article className={`${cardClass} overflow-hidden`}>
                 <img src={IMAGE_SOURCES.kontaktHero} alt="Kontaktmotiv Teamwork Construktion" loading="lazy" className="h-44 w-full object-cover" />
-                <div className="p-5">
-                  <div className="flex items-center justify-between gap-2">
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-col items-start gap-2 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
                     <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">E-Mail</p>
                     <CopyButton value={EMAIL} />
                   </div>
@@ -2036,7 +2067,7 @@ function KontaktPage() {
             </div>
 
             <div className="space-y-6 lg:col-span-8">
-              <article className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <article className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
                 <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">Ihr Vorteil</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-3">
                   {CONTACT_TRUST_POINTS.map((point) => (
@@ -2382,17 +2413,17 @@ function SiteLayout() {
       <DesktopActionBar whatsappHref={whatsappHref} />
       <MobileActionBar hidden={menuOpen} whatsappHref={whatsappHref} />
 
-      <main className="pb-24 sm:pb-0">
+      <main className="pb-32 sm:pb-0">
         <Outlet />
       </main>
 
-      <footer className="border-t border-red-100 bg-gray-50 py-8">
-        <div className={`${containerClass} flex flex-col gap-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between`}>
-          <div className="flex items-center gap-3">
+      <footer className="border-t border-red-100 bg-gray-50 py-8 pb-28 sm:pb-8">
+        <div className={`${containerClass} flex flex-col gap-4 text-center text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:text-left`}>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center">
             <img src={LOGO_SRC} alt={`${COMPANY_NAME} Logo`} className="h-14 w-auto sm:h-16" />
             <p>© {new Date().getFullYear()} {COMPANY_NAME}. Alle Rechte vorbehalten.</p>
           </div>
-          <nav aria-label="Footer Links" className="flex flex-wrap gap-4">
+          <nav aria-label="Footer Links" className="flex flex-wrap justify-center gap-4 sm:justify-start">
             {FOOTER_LINKS.map((item) => (
               <NavLink key={item.to} to={item.to} className="transition hover:text-red-700">
                 {item.label}
