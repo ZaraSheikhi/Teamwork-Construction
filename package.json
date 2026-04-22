@@ -5,6 +5,7 @@
   "description": "Website for TEAMWORK CONSTRUCTION GmbH built with React and Vite.",
   "scripts": {
     "dev": "vite",
+    "legal:pdf": "node scripts/generate-legal-pdfs.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "worker:dev": "wrangler dev --config wrangler.jsonc",

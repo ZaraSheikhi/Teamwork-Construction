@@ -649,6 +649,88 @@ function CardGrid({ items, gridClassName, renderItem }) {
   return <div className={`grid gap-4 sm:gap-6 ${gridClassName}`}>{items.map(renderItem)}</div>;
 }
 
+function BeforeAfterPair({ pair, compact = false }) {
+  const imageClassName = compact ? "h-24 sm:h-28" : "h-36 sm:h-44";
+
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-3">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-gray-500">{pair.label}</p>
+      <div className={`mt-3 grid gap-3 ${compact ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-2"}`}>
+        <figure className="space-y-2">
+          <span className="inline-flex rounded-full border border-gray-200 bg-white px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-gray-500">
+            Vorher
+          </span>
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <ConsentImage src={pair.before} alt={pair.beforeAlt} loading="lazy" className={`${imageClassName} w-full object-cover`} />
+          </div>
+        </figure>
+        <figure className="space-y-2">
+          <span className="inline-flex rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-green-700">
+            Nachher
+          </span>
+          <div className="overflow-hidden rounded-xl border border-green-200 bg-white">
+            <ConsentImage src={pair.after} alt={pair.afterAlt} loading="lazy" className={`${imageClassName} w-full object-cover`} />
+          </div>
+        </figure>
+      </div>
+    </div>
+  );
+}
+
+function ProjectCard({ project, compact = false }) {
+  const pairs = compact ? project.beforeAfter.slice(0, 1) : project.beforeAfter;
+
+  return (
+    <article className={`${cardClass} overflow-hidden`}>
+      <ConsentImage
+        src={project.image}
+        alt={project.imageAlt || project.title}
+        loading="lazy"
+        className={`${compact ? "h-44 sm:h-48" : "h-52 sm:h-60"} w-full object-cover`}
+      />
+      <div className="space-y-4 p-5">
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">{project.category}</span>
+          <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
+            {project.location}
+          </span>
+          <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
+            Dauer: {project.duration}
+          </span>
+        </div>
+
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-gray-500">Projekt {project.id}</p>
+          <h3 className="mt-2 text-xl font-semibold text-gray-900">{project.title}</h3>
+        </div>
+
+        <p className="text-sm leading-relaxed text-gray-600">{project.summary}</p>
+
+        {!compact && project.highlights?.length ? (
+          <ul className="space-y-2 text-sm text-gray-700">
+            {project.highlights.map((highlight) => (
+              <li key={highlight} className="flex items-start gap-2">
+                <span className="mt-1.5 h-2 w-2 rounded-full bg-red-600" aria-hidden="true" />
+                <span>{highlight}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="space-y-3">
+          {pairs.map((pair) => (
+            <BeforeAfterPair key={pair.id} pair={pair} compact={compact} />
+          ))}
+        </div>
+
+        {compact && project.beforeAfter.length > 1 ? (
+          <p className="text-xs font-medium text-gray-500">+ {project.beforeAfter.length - 1} weiteres Vorher/Nachher auf der Projektseite</p>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
 function Reveal({ children, className = "", delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -1532,7 +1614,7 @@ function HomePage() {
                   AUS BREMEN & UMGEBUNG
                 </>
               }
-              subtitle="Auf der Projektseite finden Sie weitere Details, Zeiten und zusätzliche Einblicke zu vergleichbaren Vorhaben."
+              subtitle="Die Vorschau zeigt echte Vorher/Nachher-Projekte. Auf der Projektseite sehen Sie weitere Umbauten mit Bildpaaren, Zeitrahmen und kurzem Leistungsumfang."
             />
           </Reveal>
 
@@ -1540,26 +1622,7 @@ function HomePage() {
             <div className={mobileCarouselTrackClass}>
               {homeProjectPreview.map((project, index) => (
                 <Reveal key={project.id} delay={index * 80} className={mobileCarouselItemClass}>
-                  <article className={`${cardClass} overflow-hidden`}>
-                    <ConsentImage
-                      src={project.image}
-                      alt={project.title}
-                      loading="lazy"
-                      className="h-44 w-full object-cover transition duration-700 hover:scale-[1.03]"
-                    />
-                    <div className="space-y-3 p-4">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                          {project.title}
-                        </span>
-                        <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
-                          {project.location}
-                        </span>
-                      </div>
-                      <p className="text-sm leading-relaxed text-gray-600">{project.summary}</p>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Dauer: {project.duration}</p>
-                    </div>
-                  </article>
+                  <ProjectCard project={project} compact />
                 </Reveal>
               ))}
             </div>
@@ -1571,26 +1634,7 @@ function HomePage() {
               gridClassName="md:grid-cols-2 lg:grid-cols-3"
               renderItem={(project, index) => (
                 <Reveal key={project.id} delay={index * 80}>
-                  <article className={`${cardClass} overflow-hidden`}>
-                    <ConsentImage
-                      src={project.image}
-                      alt={project.title}
-                      loading="lazy"
-                      className="h-48 w-full object-cover transition duration-700 hover:scale-[1.03]"
-                    />
-                    <div className="space-y-3 p-5">
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                          {project.title}
-                        </span>
-                        <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
-                          {project.location}
-                        </span>
-                      </div>
-                      <p className="text-sm leading-relaxed text-gray-600">{project.summary}</p>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Dauer: {project.duration}</p>
-                    </div>
-                  </article>
+                  <ProjectCard project={project} compact />
                 </Reveal>
               )}
             />
@@ -1738,9 +1782,9 @@ function ProjektePage() {
       <HeroSplit
         eyebrow="Projekte"
         title="Referenzen mit klaren Ergebnissen"
-        subtitle="Jedes Projekt erzählt eine eigene Geschichte – immer mit Fokus auf Qualität, Tempo und Wohnkomfort."
+        subtitle="Echte Vorher/Nachher-Aufnahmen aus unseren Projekten, mit unterschiedlichen Ausgangslagen und sauber dokumentierten Ergebnissen."
         image={IMAGE_SOURCES.projekteHero}
-        alt="Saniertes Wohnhaus mit moderner Fassade"
+        alt="Fertiggestellter Wohnbereich mit neuer Glasfront zum Garten"
         primaryCta={<Link to={buildContactPath({ source: "projekte-hero" })} className={primaryBtnClass}>Ähnliches Projekt planen</Link>}
         secondaryCta={<Link to="/leistungen" className={secondaryBtnClass}>Leistungen entdecken</Link>}
       />
@@ -1749,36 +1793,17 @@ function ProjektePage() {
         <div className={containerClass}>
           <CardGrid
             items={PROJECTS}
-            gridClassName="sm:grid-cols-2 lg:grid-cols-3"
-            renderItem={(project) => (
-              <article key={project.id} className={`${cardClass} overflow-hidden`}>
-                <ConsentImage
-                  src={project.image}
-                  alt={project.title}
-                  loading="lazy"
-                  className="h-44 w-full object-cover"
-                />
-                <div className="space-y-3 p-5">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                      {project.title}
-                    </span>
-                    <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600">
-                      {project.location}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-600">{project.summary}</p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Dauer: {project.duration}
-                  </p>
-                </div>
-              </article>
+            gridClassName="lg:grid-cols-2"
+            renderItem={(project, index) => (
+              <Reveal key={project.id} delay={index * 70}>
+                <ProjectCard project={project} />
+              </Reveal>
             )}
           />
 
           <div className="mt-8 rounded-2xl border border-red-100 bg-red-50/60 p-5 sm:p-6">
             <p className="text-sm font-medium text-red-800">
-              Vorher/Nachher-Material und zusätzliche Detailfotos stellen wir gern projektbezogen auf Anfrage bereit.
+              Jede Referenz zeigt echte Projektbilder mit klaren Vorher/Nachher-Paaren. Ort und Zeitrahmen sind bewusst kompakt gehalten, damit die bauliche Veraenderung im Vordergrund steht.
             </p>
           </div>
         </div>
@@ -1984,6 +2009,12 @@ function LegalPage({ pageKey }) {
   const page = LEGAL_CONTENT[pageKey];
   if (!page) return <Navigate to="/" replace />;
   useSeo(`${page.title} | ${COMPANY_NAME}`, page.metaDescription || page.subtitle);
+  const pdfHref =
+    pageKey === "datenschutz"
+      ? `${import.meta.env.BASE_URL}documents/datenschutz.pdf`
+      : pageKey === "agb"
+        ? `${import.meta.env.BASE_URL}documents/agb.pdf`
+        : null;
 
   return (
     <>
@@ -2000,7 +2031,14 @@ function LegalPage({ pageKey }) {
       <section className="bg-gray-50 py-14 sm:py-16">
         <div className={containerClass}>
           <div className={`${cardClass} p-6 sm:p-8`}>
-            <p className="text-base leading-relaxed text-gray-700">{page.intro}</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <p className="text-base leading-relaxed text-gray-700">{page.intro}</p>
+              {pdfHref ? (
+                <a href={pdfHref} className={secondaryBtnClass} download>
+                  PDF herunterladen
+                </a>
+              ) : null}
+            </div>
             <div className="mt-6 space-y-4">
               {page.sections.map((section) => (
                 <article key={section.heading} className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">

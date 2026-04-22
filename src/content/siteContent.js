@@ -2,6 +2,23 @@ export const COMPANY_NAME = "Teamwork Construction";
 export const REGION = "Bremen & Umgebung";
 export const SITE_URL = import.meta.env.VITE_SITE_URL || "https://teamwork-construction.de";
 export const LOGO_SRC = `${import.meta.env.BASE_URL}images/brand/logo.png`;
+const PROJECT_IMAGE_BASE = `${import.meta.env.BASE_URL}images/projects`;
+const PROJECT_IMAGE_SOURCES = {
+  project1ExteriorBefore: `${PROJECT_IMAGE_BASE}/projekt-1-vorher.jpeg`,
+  project1ExteriorAfter: `${PROJECT_IMAGE_BASE}/projekt-1-nachher.jpg`,
+  project1InteriorBefore: `${PROJECT_IMAGE_BASE}/projekt-1-innen-vorher.jpeg`,
+  project1InteriorAfter: `${PROJECT_IMAGE_BASE}/projekt-1-innen-nachher.png`,
+  project2RoomBefore: `${PROJECT_IMAGE_BASE}/projekt-2-vorher.jpeg`,
+  project2RoomAfter: `${PROJECT_IMAGE_BASE}/projekt-2-nacher.jpeg`,
+  project2StairsBefore: `${PROJECT_IMAGE_BASE}/projekt-2-vorher2.jpeg`,
+  project2StairsAfter: `${PROJECT_IMAGE_BASE}/projekt-2-nacher2.jpeg`,
+  bath1Before: `${PROJECT_IMAGE_BASE}/bad-1-vorher.jpeg`,
+  bath1After: `${PROJECT_IMAGE_BASE}/bad-1-nachher.jpeg`,
+  bath2Before: `${PROJECT_IMAGE_BASE}/bad-2-vorher.jpeg`,
+  bath2After: `${PROJECT_IMAGE_BASE}/bad-2-nachher.jpeg`,
+  bath3Before: `${PROJECT_IMAGE_BASE}/bad-3-vorher.jpeg`,
+  bath3After: `${PROJECT_IMAGE_BASE}/bad-3-nachher.jpeg`,
+};
 
 export const PHONE_DISPLAY = "+49 174 4257898";
 export const PHONE_TEL = "tel:+491744257898";
@@ -57,8 +74,7 @@ export const IMAGE_SOURCES = {
     "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=1600",
   leistungenHero:
     "https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=1600",
-  projekteHero:
-    "https://images.pexels.com/photos/1115804/pexels-photo-1115804.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  projekteHero: PROJECT_IMAGE_SOURCES.project1InteriorAfter,
   ablaufHero:
     "https://images.pexels.com/photos/7512035/pexels-photo-7512035.jpeg?auto=compress&cs=tinysrgb&w=1600",
   kontaktHero:
@@ -204,63 +220,149 @@ export const STEPS = [
 export const PROJECTS = [
   {
     id: "P01",
-    title: "Wohnzimmer-Update",
+    title: "Wohnraumerweiterung mit neuer Gartenseite",
     location: "Bremen-Schwachhausen",
-    image:
-      "https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    category: "Wohnraumerweiterung",
+    image: PROJECT_IMAGE_SOURCES.project1InteriorAfter,
+    imageAlt: "Fertiggestellter Wohn-Essbereich mit großer Glasfront zum Garten",
     summary:
-      "Neue Wandgestaltung, Lichtkonzept und Bodenanpassung für ein ruhiges, helles Wohngefühl.",
-    duration: "2 Wochen",
+      "Die Gartenfassade wurde geöffnet, mit einer neuen Schiebeanlage ausgestattet und im Innenraum zu einem hellen Wohn-Essbereich ausgebaut.",
+    duration: "6 Wochen",
+    highlights: [
+      "Rueckbau der Bestandswand mit sauberer Vorbereitung der Oeffnung",
+      "Neue Schiebeanlage zur Terrasse fuer mehr Licht und Weite",
+      "Innenausbau mit klaren Oberflaechen und ruhiger Lichtfuehrung",
+    ],
+    beforeAfter: [
+      {
+        id: "P01-A",
+        label: "Gartenfassade",
+        before: PROJECT_IMAGE_SOURCES.project1ExteriorBefore,
+        beforeAlt: "Gartenfassade waehrend des Rueckbaus vor dem Einbau der Schiebeanlage",
+        after: PROJECT_IMAGE_SOURCES.project1ExteriorAfter,
+        afterAlt: "Neue Gartenfassade mit grosser Schiebeanlage nach dem Umbau",
+      },
+      {
+        id: "P01-B",
+        label: "Wohn-Essbereich",
+        before: PROJECT_IMAGE_SOURCES.project1InteriorBefore,
+        beforeAlt: "Innenraum waehrend des Durchbruchs zur Gartenseite",
+        after: PROJECT_IMAGE_SOURCES.project1InteriorAfter,
+        afterAlt: "Fertiger Wohn-Essbereich mit offener Glasfront zum Garten",
+      },
+    ],
   },
   {
     id: "P02",
-    title: "Bad refresh",
-    location: "Bremen-Horn",
-    image:
-      "https://images.pexels.com/photos/2219024/pexels-photo-2219024.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    title: "Dachgeschoss-Ausbau mit Galerie",
+    location: "Bremen-Findorff",
+    category: "Dachgeschoss-Ausbau",
+    image: PROJECT_IMAGE_SOURCES.project2RoomAfter,
+    imageAlt: "Heller Dachgeschossraum nach dem Ausbau mit neuer Galerie und Bodenbelag",
     summary:
-      "Teilmodernisierung mit neuen Fliesenflächen und optimierter Aufteilung für mehr Komfort.",
-    duration: "9 Tage",
+      "Aus einem provisorischen Dachgeschossbereich entstand ein heller Wohnraum mit Galerieebene, neuer Treppe und abgestimmtem Bad.",
+    duration: "5 Wochen",
+    highlights: [
+      "Neue Raumstruktur mit Galerieebene und klaren Laufwegen",
+      "Boden, Oberflaechen und Treppenloesung aus einem Guss",
+      "Wohnraum und Bad im Dachgeschoss abgestimmt modernisiert",
+    ],
+    beforeAfter: [
+      {
+        id: "P02-A",
+        label: "Wohnraum",
+        before: PROJECT_IMAGE_SOURCES.project2RoomBefore,
+        beforeAlt: "Dachgeschossraum waehrend des Ausbaus vor dem Boden und Endfinish",
+        after: PROJECT_IMAGE_SOURCES.project2RoomAfter,
+        afterAlt: "Fertiger Dachgeschossraum mit neuer Galerie und Bodenbelag",
+      },
+      {
+        id: "P02-B",
+        label: "Galerie und Treppe",
+        before: PROJECT_IMAGE_SOURCES.project2StairsBefore,
+        beforeAlt: "Dachgeschoss mit offener Rohbausituation vor dem Einbau der Treppe",
+        after: PROJECT_IMAGE_SOURCES.project2StairsAfter,
+        afterAlt: "Fertige Galerie mit neuer Treppe im ausgebauten Dachgeschoss",
+      },
+    ],
   },
   {
     id: "P03",
-    title: "Küchenumbau",
-    location: "Bremen-Oberneuland",
-    image:
-      "https://images.pexels.com/photos/280229/pexels-photo-280229.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    title: "Duschbad unter der Dachschraege",
+    location: "Bremen-Neustadt",
+    category: "Badmodernisierung",
+    image: PROJECT_IMAGE_SOURCES.bath1After,
+    imageAlt: "Fertiges Duschbad unter einer Dachschraege mit grauen Bodenfliesen",
     summary:
-      "Anpassung von Anschlüssen, Wandflächen und Boden für eine moderne offene Küche.",
-    duration: "3 Wochen",
+      "Aus dem rueckgebauten Bestand entstand ein helles Duschbad mit neuer Sanitärkeramik, klaren Flaechen und pflegeleichten Oberflaechen.",
+    duration: "10 Tage",
+    highlights: [
+      "Kompletter Rueckbau des Altbestands",
+      "Neue Dusche, WC und Waschplatz auf kompakter Flaeche",
+      "Saubere Anpassung an die Dachschraege",
+    ],
+    beforeAfter: [
+      {
+        id: "P03-A",
+        label: "Badumbau",
+        before: PROJECT_IMAGE_SOURCES.bath1Before,
+        beforeAlt: "Rueckgebautes Badezimmer vor der Modernisierung",
+        after: PROJECT_IMAGE_SOURCES.bath1After,
+        afterAlt: "Modernisiertes Duschbad nach Abschluss der Arbeiten",
+      },
+    ],
   },
   {
     id: "P04",
-    title: "Flur & Treppe",
-    location: "Bremen-Mitte",
-    image:
-      "https://images.pexels.com/photos/1115804/pexels-photo-1115804.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    title: "Kompaktbad mit Wandnische",
+    location: "Delmenhorst-Deichhorst",
+    category: "Badmodernisierung",
+    image: PROJECT_IMAGE_SOURCES.bath2After,
+    imageAlt: "Kleines Dachgeschossbad mit Duschkabine und integrierter Wandnische",
     summary:
-      "Robuste Oberflächen und klare Lichtführung für einen einladenden Eingangsbereich.",
+      "Das kleine Dachgeschossbad wurde neu geordnet und mit Duschkabine, Wandnische und ruhigem Materialbild deutlich funktionaler umgesetzt.",
     duration: "8 Tage",
+    highlights: [
+      "Neuorganisation auf kleiner Grundflaeche",
+      "Wandnische fuer Ablage und klare Linien",
+      "Helle Fliesen kombiniert mit robustem Boden",
+    ],
+    beforeAfter: [
+      {
+        id: "P04-A",
+        label: "Badumbau",
+        before: PROJECT_IMAGE_SOURCES.bath2Before,
+        beforeAlt: "Altes Dachgeschossbad waehrend der Entkernung",
+        after: PROJECT_IMAGE_SOURCES.bath2After,
+        afterAlt: "Neu aufgebautes Dachgeschossbad mit Duschkabine und Wandnische",
+      },
+    ],
   },
   {
     id: "P05",
-    title: "Trockenbau DG",
-    location: "Delmenhorst",
-    image:
-      "https://images.pexels.com/photos/6474475/pexels-photo-6474475.jpeg?auto=compress&cs=tinysrgb&w=1200",
-    summary:
-      "Neue Raumzonen im Dachgeschoss inklusive Dämmoptimierung und sauberem Finish.",
-    duration: "2.5 Wochen",
-  },
-  {
-    id: "P06",
-    title: "Wasserschaden-Sanierung",
+    title: "Schmales Bestandsbad neu organisiert",
     location: "Lilienthal",
-    image:
-      "https://images.pexels.com/photos/7937214/pexels-photo-7937214.jpeg?auto=compress&cs=tinysrgb&w=1200",
+    category: "Sanierung im Bestand",
+    image: PROJECT_IMAGE_SOURCES.bath3After,
+    imageAlt: "Fertiges schmales Bad mit heller Gestaltung und Duschbereich",
     summary:
-      "Strukturierter Rückbau und Wiederaufbau bis zur vollständig wohnlichen Nutzung.",
-    duration: "3 Wochen",
+      "Ein sehr schmales Altbau-Bad wurde komplett erneuert und mit neuer Dusche, Spiegellicht und heller Oberflaeche deutlich aufgewertet.",
+    duration: "7 Tage",
+    highlights: [
+      "Rueckbau und Neuordnung der Leitungsfuehrung",
+      "Platzsparende Badloesung mit klarer Wegefuehrung",
+      "Helle Oberflaechen fuer mehr Ruhe im schmalen Raum",
+    ],
+    beforeAfter: [
+      {
+        id: "P05-A",
+        label: "Badumbau",
+        before: PROJECT_IMAGE_SOURCES.bath3Before,
+        beforeAlt: "Schmales Bestandsbad vor der Sanierung",
+        after: PROJECT_IMAGE_SOURCES.bath3After,
+        afterAlt: "Neu organisiertes schmales Bad nach der Sanierung",
+      },
+    ],
   },
 ];
 
@@ -294,7 +396,7 @@ export const STATIC_SEO = {
   projekteHub: {
     title: "Projekte in Bremen & Umgebung | Teamwork Construction",
     metaDescription:
-      "Referenzen aus Bremen & Umgebung: echte Projekte mit klaren Ergebnissen, transparenter Umsetzung und termintreuer Übergabe.",
+      "Referenzen aus Bremen & Umgebung mit echten Vorher-Nachher-Aufnahmen, klaren Ergebnissen und transparenter Umsetzung.",
   },
   ablaufHub: {
     title: "Ablauf vom Erstkontakt bis Umsetzung | Teamwork Construction",
